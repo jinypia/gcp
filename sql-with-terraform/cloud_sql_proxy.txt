@@ -1,0 +1,16 @@
+# Setup the env. variables
+export GOOGLE_PROJECT=$(gcloud config get-value project)
+
+MYSQL_DB_NAME=$(terraform output -json | jq -r '.instance_name.value')
+MYSQL_CONN_NAME="${GOOGLE_PROJECT}:us-central1:${MYSQL_DB_NAME}"
+
+# start cloud sql proxy
+
+./cloud_sql_proxy -instances=${MYSQL_CONN_NAME}=tcp:3306
+
+
+# get the generated password for MySQL
+echo MYSQL_PASSWORD=$(terraform output -json | jq -r '.generated_user_password.value')
+
+# Test connection with the password
+mysql -udefault -p --host 127.0.0.1 default
